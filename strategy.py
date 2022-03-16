@@ -2,10 +2,7 @@
 import string
 import random
 from typing import List
-
-def generate_id(length=8):
-    #function for generating id
-    return ''.join(random.choices(string.ascii_uppercase, k=length))
+from abc import ABC,  abstractmethod
 
 class SupportTicket:
     id: str
@@ -16,6 +13,32 @@ class SupportTicket:
         self.id = generate_id()
         self.customer = customer
         self.issue = issue
+
+def generate_id(length=8):
+    #function for generating id
+    return ''.join(random.choices(string.ascii_uppercase, k=length))
+
+class TicketOrderingStrategy(ABC):
+    @abstractmethod
+    def create_ordering(self, list: List[SupportTicket]) -> List[SupportTicket]:
+        pass
+    
+class FIFOOrderingStrategy(TicketOrderingStrategy):
+    def create_ordering(self, list: List[SupportTicket]) -> List[SupportTicket]:
+        return list.copy()
+    
+class FILOOrderingStrategy(TicketOrderingStrategy):
+    def create_ordering(self, list: List[SupportTicket]) -> List[SupportTicket]:
+        list_copy = list.copy()
+        list_copy.reverse()
+        return list_copy
+    
+class RandomOrderingStrategy(TicketOrderingStrategy):
+    def create_ordering(self, list: List[SupportTicket]) -> List[SupportTicket]:
+        list_copy = list.copy()
+        random.shuffle(list_copy)
+        return list_copy
+    
         
 class CustomerSupport:
     tickets: List[SupportTicket] = []
@@ -23,23 +46,18 @@ class CustomerSupport:
     def create_ticket(self, customer, issue):
         self.tickets.append(SupportTicket(customer,issue))
                             
-    def process_tickets(self, processing_strategy: str = "fifo"):
+    def process_tickets(self, processing_strategy: TicketOrderingStrategy):
+       
+       #create the ordered list
+        ticket_list = processing_strategy.create_ordering(self.tickets)
+       
         #if it's empty, don't do anything
-        if len(self.tickets)==0:
+        if len(ticket_list) == 0:
             print("There are no tickets to process.")
             return
         
-        if processing_strategy == "fifo":
-            for ticket in self.tickets:
-                self.process_ticket(ticket)
-        elif processing_strategy == "filo":
-            for ticket in reversed(self.tickets):
-                self.process_ticket(ticket)
-        elif processing_strategy == "random":
-            list_copy = self.tickets.copy()
-            random.shuffle(list_copy)
-            for ticket in list_copy:
-                self.process_ticket(ticket)
+        for ticket in ticket_list:
+            self.process_ticket(ticket)
                 
     def process_ticket(self,ticket: SupportTicket):
         print(f"processing ticket id: {ticket.id}")
@@ -55,6 +73,6 @@ app.create_ticket("Linus", "Hi need help")
 app.create_ticket("Arjan", "it is not working")
 
 #process the tickets
-app.process_tickets("fifo")
+app.process_tickets(RandomOrderingStrategy())
 
         
