@@ -72,7 +72,7 @@ class CustomerSupport:
 app = CustomerSupport()
 
 #register
-app.create_ticket("Jon Smith", "bla bla bla")
+app.create_ticket("Jon Smith", "Something is broken")
 app.create_ticket("Linus", "Hi need help")
 app.create_ticket("Arjan", "it is not working")
 
