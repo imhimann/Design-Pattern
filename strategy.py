@@ -39,6 +39,10 @@ class RandomOrderingStrategy(TicketOrderingStrategy):
         random.shuffle(list_copy)
         return list_copy
     
+class BlackHoleOrderingStrategy(TicketOrderingStrategy):
+    def create_ordering(self, list: List[SupportTicket]) -> List[SupportTicket]:
+        return []
+    
         
 class CustomerSupport:
     tickets: List[SupportTicket] = []
@@ -73,6 +77,6 @@ app.create_ticket("Linus", "Hi need help")
 app.create_ticket("Arjan", "it is not working")
 
 #process the tickets
-app.process_tickets(RandomOrderingStrategy())
+app.process_tickets(BlackHoleOrderingStrategy())
 
         
