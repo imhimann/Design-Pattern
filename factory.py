@@ -69,32 +69,62 @@ class WAVAudioExporter(AudioExporter):
     def do_export(self, folder: pathlib.Path):
         print(f"Exporting audio data in WAV format to {folder}.")
         
+class ExporterFactory(ABC):
+    """
+    Factory that represents a combination of video and audio codecs
+    The factory doesn't maintain any of the instances it creates.
+    """
+    
+    def get_video_exporter(self) -> VideoExporter:
+        """Returns a new video exporter instance."""
+    
+    def get_audio_exporter(self) -> AudioExporter:
+        """Retruns a new audio exporter instance"""
+        
+class FastExporter(ExporterFactory):
+    def get_video_exporter(self) -> VideoExporter:
+        return H264BVideoExporter()
+    
+    def get_audi_exporter(self) -> AudioExporter:
+        return AACAudioExporter()
+        
+class HighQualityExporter(ExporterFactory):
+    def get_video_exporter(self) -> VideoExporter:
+        return H264Hi422PVideoExporter()
+    
+    def get_audio_exporter(self) -> AudioExporter:
+        return AACAudioExporter()
+
+class MasterExporter(ExporterFactory):
+    def get_video_exporter(self) -> VideoExporter:
+        return LosslessVideoExporter()
+    
+    def get_audio_exporter(self) -> AudioExporter:
+        return WAVAudioExporter()
+        
+        
+def read_exporter() -> ExporterFactory:
+    factories = {
+        "low" : FastExporter(),
+        "high" : HighQualityExporter(),
+        "master" : MasterExporter()   
+    }
+    
+    #read the export quality
+    while True:
+        export_quality = input("Enter desired output quality: ")
+        if export_quality in factories:
+            return factories[export_quality]
+        print(f"Unknown output quality option: {export_quality}")
+        
 def main() -> None:
     """Main function"""
     
-    #read the export quality
-    export_quality: str
-    while True:
-        export_quality = input("Enter desired output quality: ")
-        if export_quality in {"low", "high", "master"}:
-            break
-        print(f"Unknown output quality option: {export_quality}")
+    fac = read_exporter()
         
-    #create the video and audio exporters
-    video_exporter: VideoExporter
-    audio_exporter: AudioExporter
-    
-    if export_quality == "low":
-        video_exporter = H264BVideoExporter()
-        audio_exporter = AACAudioExporter()
-        
-    elif export_quality == "high":
-        video_exporter = H264Hi422PVideoExporter()  
-        audio_exporter = AACAudioExporter() 
-    else:
-        video_exporter = LosslessVideoExporter()
-        audio_exporter = WAVAudioExporter()
-        
+    #retrive the video and audio exporters
+    video_exporter = fac.get_video_exporter()
+    audio_exporter = fac.get_audio_exporter()
         
     #prepare the export
     video_exporter.prepare_export("placeholder_for_video_data")
